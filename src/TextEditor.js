@@ -29,7 +29,7 @@ const TextEditor = () => {
   ];
 
   const handleProcedureContentChange = (content) => {
-    console.log("content---->", content);
+    console.log("content---->", content); // 여기에서 CRDT/OT 연결
   };
 
   return (
