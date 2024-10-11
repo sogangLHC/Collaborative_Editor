@@ -1,8 +1,13 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import 'quill/dist/quill.snow.css'
 import ReactQuill from 'react-quill'
+import * as Y from 'yjs';
+import { WebrtcProvider } from "y-webrtc";
+import { QuillBinding } from "y-quill";
 
 const TextEditor = () => {
+
+  const quillRef = useRef(null);
   
   var modules = {
     toolbar: [
@@ -28,8 +33,27 @@ const TextEditor = () => {
     "link", "image", "align", "size",
   ];
 
+  useEffect(() => {
+    if (quillRef.current){
+      const quill = quillRef.current.getEditor();
+      const ydoc = new Y.Doc();
+      const provider = new WebrtcProvider(
+        'quill-demo-room', 
+        ydoc,
+        {signaling:['ws://localhost:3000']}
+      );
+      const ytext = ydoc.getText('quill');
+      const binding = new QuillBinding(ytext, quill, provider.awareness);
+      window.addEventListener('blur', () => quill.blur());
+      return () => {
+        binding.destroy();
+        provider.destroy();
+      };
+    }
+  }, []);
+
   const handleProcedureContentChange = (content) => {
-    console.log("content---->", content); // 여기에서 CRDT/OT 연결
+    console.log("content---->", content);
   };
 
   return (
@@ -37,6 +61,7 @@ const TextEditor = () => {
       <h1 style={{ textAlign: "center" }}>LHC Text Editor</h1>
       <div style={{ display: "grid", justifyContent: "center"}}>
         <ReactQuill
+          ref={quillRef}
           theme="snow"
           modules={modules}
           formats={formats}
